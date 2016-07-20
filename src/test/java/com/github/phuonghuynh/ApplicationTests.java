@@ -1,6 +1,7 @@
 package com.github.phuonghuynh;
 
 import com.github.phuonghuynh.gateway.StatusGateway;
+import com.github.phuonghuynh.main.DemoApplication;
 import com.github.phuonghuynh.model.Status;
 import com.github.phuonghuynh.service.StatusService;
 import org.junit.FixMethodOrder;
@@ -16,7 +17,7 @@ import javax.annotation.Resource;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = Application.class)
+@SpringApplicationConfiguration(classes = DemoApplication.class)
 @WebAppConfiguration
 public class ApplicationTests {
 
