@@ -1,11 +1,19 @@
-package com.github.phuonghuynh.spring;
+package com.github.phuonghuynh.main;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.phuonghuynh.model.Status;
 import net.openhft.chronicle.queue.ChronicleQueueBuilder;
+import net.openhft.chronicle.queue.ExcerptAppender;
+import net.openhft.chronicle.queue.ExcerptTailer;
 import net.openhft.chronicle.queue.impl.single.SingleChronicleQueue;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.core.Pollers;
+import org.springframework.integration.dsl.jms.Jms;
 import org.springframework.integration.scheduling.PollerMetadata;
 
 import java.util.concurrent.Executors;
@@ -17,6 +25,9 @@ import java.util.stream.Collectors;
  */
 @Configuration
 public class IntegrationConfig {
+
+    @Autowired
+    private ObjectMapper jacksonObjectMapper;
 
   @Bean(name = PollerMetadata.DEFAULT_POLLER)
   public PollerMetadata poller() {
@@ -30,10 +41,9 @@ public class IntegrationConfig {
   }
 
   @Bean
-  public IntegrationFlow orders(SingleChronicleQueue chronicleQueue)
+  public IntegrationFlow chronicleStatusesInbound(SingleChronicleQueue chronicleQueue)
   {
-    return f -> f
-      .split(Order.class, Order::getItems)
+      return IntegrationFlows.from("status")
       .channel(c -> c.executor(Executors.newCachedThreadPool()))
       .<OrderItem, Boolean>route(OrderItem::isIced, mapping -> mapping
         .subFlowMapping("true", sf -> sf
@@ -101,4 +111,53 @@ public class IntegrationConfig {
         .correlationStrategy(m -> ((Status) m.getPayload()).getOrderNumber()))
       .handle(CharacterStreamWritingMessageHandler.stdout());
   }
+
+    @Bean
+    public IntegrationFlow chronicleStatusesOutbound(SingleChronicleQueue chronicleQueue)
+    {
+        return IntegrationFlows.from("status")
+                .channel(c -> c.executor(Executors.newCachedThreadPool()))
+                .channel(c -> c.queue(10))
+                .handle(m -> {
+                            // write one object
+                            ExcerptAppender appender = chronicleQueue.acquireAppender();
+                            String jsonStr = null;
+                            try
+                            {
+                                jsonStr = jacksonObjectMapper.writeValueAsString(m.getPayload());
+                            }
+                            catch( JsonProcessingException e )
+                            {
+                                //.debug("", e);
+                            }
+                            appender.writeText(jsonStr);
+                        })
+                .get();
+    }
+
+    @Bean
+    public IntegrationFlow jmsStatusesInbound(SingleChronicleQueue chronicleQueue)
+    {
+        return IntegrationFlows
+                .from(Jms.inboundAdapter(this.jmsConnectionFactory)
+                        .configureJmsTemplate(t ->
+                                t.deliveryPersistent(true)
+                                        .jmsMessageConverter(myMessageConverter()))
+                        .destination("jmsInbound"))
+                .transform(...)
+            .channel(...)
+            .get();
+    }
+
+    @Bean
+    public IntegrationFlow jmsStatusesOutbound(SingleChronicleQueue chronicleQueue)
+    {
+        return IntegrationFlows.from("jmsOutboundGatewayChannel")
+                .handle(Jms.outboundGateway(this.jmsConnectionFactory)
+                        .replyContainer(c ->
+                                c.concurrentConsumers(3)
+                                        .sessionTransacted(true))
+                        .requestDestination("jmsPipelineTest"))
+                .get();
+    }
 }

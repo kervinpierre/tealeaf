@@ -20,6 +20,8 @@ public class Status
 {
   private boolean valid;
   private UUID id;
+  private UUID sourceId;
+  private UUID dstId;
   private String desc;
   private DateTime timeStamp;
   private int statusType;
@@ -33,6 +35,28 @@ public class Status
   private UUID getId()
   {
     return id;
+  }
+
+  @Column(name = "source_id", columnDefinition = "BINARY(16)")
+  private UUID getSourceId()
+  {
+    return sourceId;
+  }
+
+  private void setSourceId(UUID sourceId)
+  {
+    this.sourceId = sourceId;
+  }
+
+  @Column(name = "dst_id", columnDefinition = "BINARY(16)")
+  private UUID getDstId()
+  {
+    return dstId;
+  }
+
+  private void setDstId(UUID dstId)
+  {
+    this.dstId = dstId;
   }
 
   @Column(name = "is_valid")
