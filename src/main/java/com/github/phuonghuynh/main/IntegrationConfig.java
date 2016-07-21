@@ -36,25 +36,27 @@ public class IntegrationConfig
     @Autowired
     private CachingConnectionFactory jmsConnectionFactory;
 
-  @Bean(name = PollerMetadata.DEFAULT_POLLER)
-  public PollerMetadata poller() {
-    return Pollers.fixedDelay(10).get();
-  }
+    @Bean(name = PollerMetadata.DEFAULT_POLLER)
+    public PollerMetadata poller()
+    {
+        return Pollers.fixedDelay(10).get();
+    }
 
-  @Bean
-  public SingleChronicleQueue chronicleQueue() {
-    String basePath = System.getProperty("java.io.tmpdir") + "/SimpleChronicle";
-    return ChronicleQueueBuilder.single(basePath).build();
-  }
+    @Bean
+    public SingleChronicleQueue chronicleQueue()
+    {
+        String basePath = System.getProperty("java.io.tmpdir") + "/SimpleChronicle";
+        return ChronicleQueueBuilder.single(basePath).build();
+    }
 
-  @Bean
-  public IntegrationFlow chronicleStatusesInbound(SingleChronicleQueue chronicleQueue)
-  {
-      // FIXME : Read from chronicle queue
-      return IntegrationFlows.from("status")
-              .channel(MessageChannels.queue("statusesInboundChannel"))
-              .get();
-  }
+    @Bean
+    public IntegrationFlow chronicleStatusesInbound(SingleChronicleQueue chronicleQueue)
+    {
+        // FIXME : Read from chronicle queue
+        return IntegrationFlows.from("status")
+                .channel(MessageChannels.queue("statusesInboundChannel"))
+                .get();
+    }
 
     @Bean
     public IntegrationFlow chronicleStatusesOutbound(SingleChronicleQueue chronicleQueue)
@@ -62,20 +64,21 @@ public class IntegrationConfig
         return IntegrationFlows.from("status")
                 .channel(c -> c.executor(Executors.newCachedThreadPool()))
                 .channel(c -> c.queue(10))
-                .handle(m -> {
-                            // write one object
-                            ExcerptAppender appender = chronicleQueue.acquireAppender();
-                            String jsonStr = null;
-                            try
-                            {
-                                jsonStr = jacksonObjectMapper.writeValueAsString(m.getPayload());
-                            }
-                            catch( JsonProcessingException ex )
-                            {
-                                LOGGER.debug("Error converting status to JSON", ex);
-                            }
-                            appender.writeText(jsonStr);
-                        })
+                .handle(m ->
+                {
+                    // write one object
+                    ExcerptAppender appender = chronicleQueue.acquireAppender();
+                    String jsonStr = null;
+                    try
+                    {
+                        jsonStr = jacksonObjectMapper.writeValueAsString(m.getPayload());
+                    }
+                    catch( JsonProcessingException ex )
+                    {
+                        LOGGER.debug("Error converting status to JSON", ex);
+                    }
+                    appender.writeText(jsonStr);
+                })
                 .get();
     }
 
@@ -86,10 +89,10 @@ public class IntegrationConfig
         return IntegrationFlows
                 .from(Jms.inboundAdapter(this.jmsConnectionFactory)
                         .configureJmsTemplate(t ->
-                                                t.deliveryPersistent(true))
+                                t.deliveryPersistent(true))
                         .destination("jmsInbound"))
                 .channel(MessageChannels.queue("statusesInboundChannel"))
-            .get();
+                .get();
     }
 
     @Bean
