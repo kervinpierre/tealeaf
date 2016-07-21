@@ -8,7 +8,6 @@ import net.openhft.chronicle.queue.impl.single.SingleChronicleQueue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.jms.DefaultJmsListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.QueueChannel;
@@ -19,9 +18,6 @@ import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.core.Pollers;
 import org.springframework.integration.dsl.jms.Jms;
 import org.springframework.integration.scheduling.PollerMetadata;
-import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
-import org.springframework.jms.connection.CachingConnectionFactory;
-import org.springframework.messaging.MessageChannel;
 
 import javax.jms.ConnectionFactory;
 import java.util.concurrent.Executors;
