@@ -4,10 +4,12 @@ import com.github.phuonghuynh.model.Status;
 import com.github.phuonghuynh.service.StatusGateway;
 import com.github.phuonghuynh.service.StatusService;
 import com.github.phuonghuynh.util.JMSServerUtil;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -28,12 +30,21 @@ public class IndexController
     @Resource
     private StatusGateway statusGateway;
 
+    /**
+     * The pdemo.use-jms from appliction.properties
+     */
+    @Value("${pdemo.use-jms:false}")
+    private Boolean useJMS;
+
     @RequestMapping("/")
     public String index(HttpServletRequest request) throws Exception
     {
-        // FIXME: Should be started conditionally
-        // FIXME: Should be started in a background thread
-        JMSServerUtil.startServer();
+        if( BooleanUtils.isTrue(useJMS))
+        {
+            // FIXME: Should be started conditionally
+            // FIXME: Should be started in a background thread
+            JMSServerUtil.startServer();
+        }
 
         for( int i=0; i<10; i++ )
         {
