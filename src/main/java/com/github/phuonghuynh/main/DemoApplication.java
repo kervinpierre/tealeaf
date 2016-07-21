@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication(scanBasePackages="com.github.phuonghuynh")
 @EnableJpaRepositories("com.github.phuonghuynh.repository")
-@EntityScan(basePackages = "com.github.phuonghuynh.entity")
+@EntityScan(basePackages = "com.github.phuonghuynh.model")
 public class DemoApplication extends SpringBootServletInitializer
 {
   @Override

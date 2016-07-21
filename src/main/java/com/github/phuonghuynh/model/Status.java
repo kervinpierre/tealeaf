@@ -12,6 +12,10 @@ import javax.persistence.Table;
 import java.util.UUID;
 
 /**
+ * This is the main 'message' object type.  Instances of this class will be
+ * sent back and forth from clients and servers.  Either via Chronicle Queue
+ * or JMS/ActiveMQ Artemis.
+ *
  * Created by phuonghqh on 7/17/16.
  */
 @Entity
@@ -28,6 +32,11 @@ public class Status
   private int payloadType;
   private byte[] payload;
 
+  /**
+   * The actual message's ID
+   *
+   * @return
+     */
   @Id
   @GeneratedValue(generator = "uuid2")
   @GenericGenerator(name = "uuid2", strategy = "uuid2")
@@ -37,6 +46,15 @@ public class Status
     return id;
   }
 
+  private void setId(UUID id)
+  {
+    this.id = id;
+  }
+
+  /**
+   * ID of sending service/client
+   * @return
+     */
   @Column(name = "source_id", columnDefinition = "BINARY(16)")
   private UUID getSourceId()
   {
@@ -48,6 +66,11 @@ public class Status
     this.sourceId = sourceId;
   }
 
+  /**
+   * ID of receiver client/service.
+   *
+   * @return
+     */
   @Column(name = "dst_id", columnDefinition = "BINARY(16)")
   private UUID getDstId()
   {
@@ -59,6 +82,10 @@ public class Status
     this.dstId = dstId;
   }
 
+  /**
+   * Flags this status message as valid or not
+   * @return
+     */
   @Column(name = "is_valid")
   @Type(type = "numeric_boolean")
   private boolean isValid()
@@ -69,11 +96,6 @@ public class Status
   private void setValid(boolean valid)
   {
     this.valid = valid;
-  }
-
-  private void setId(UUID id)
-  {
-    this.id = id;
   }
 
   @Column(name = "desc")
@@ -87,6 +109,10 @@ public class Status
     this.desc = desc;
   }
 
+  /**
+   * Create time-stamp of status message
+   * @return
+     */
   @Column(name = "create_time")
   @Type(type="org.jadira.usertype.dateandtime.joda.PersistentDateTime")
   private DateTime getTimeStamp()
@@ -99,6 +125,11 @@ public class Status
     this.timeStamp = timeStamp;
   }
 
+  /**
+   * Status message type.
+   *
+   * @return
+     */
   @Column(name = "status_type")
   private int getStatusType()
   {
@@ -110,6 +141,10 @@ public class Status
     this.statusType = statusType;
   }
 
+  /**
+   * Message Payload's type
+   * @return
+     */
   @Column(name = "payload_type")
   private int getPayloadType()
   {
@@ -121,6 +156,10 @@ public class Status
     this.payloadType = payloadType;
   }
 
+  /**
+   * Bytes carried along with this status message
+   * @return
+     */
   @Column(name = "payload")
   private byte[] getPayload()
   {

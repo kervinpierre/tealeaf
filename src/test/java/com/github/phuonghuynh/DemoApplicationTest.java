@@ -1,6 +1,6 @@
 package com.github.phuonghuynh;
 
-import com.github.phuonghuynh.gateway.StatusGateway;
+import com.github.phuonghuynh.service.StatusGateway;
 import com.github.phuonghuynh.main.DemoApplication;
 import com.github.phuonghuynh.model.Status;
 import com.github.phuonghuynh.service.StatusService;
@@ -19,7 +19,8 @@ import javax.annotation.Resource;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = DemoApplication.class)
 @WebAppConfiguration
-public class ApplicationTests {
+public class DemoApplicationTest
+{
 
   @Autowired
   StatusService statusService;

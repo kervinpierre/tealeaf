@@ -8,8 +8,10 @@ import net.openhft.chronicle.queue.impl.single.SingleChronicleQueue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.jms.DefaultJmsListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
@@ -17,8 +19,11 @@ import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.core.Pollers;
 import org.springframework.integration.dsl.jms.Jms;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.connection.CachingConnectionFactory;
+import org.springframework.messaging.MessageChannel;
 
+import javax.jms.ConnectionFactory;
 import java.util.concurrent.Executors;
 
 /**
@@ -34,7 +39,7 @@ public class IntegrationConfig
     private ObjectMapper jacksonObjectMapper;
 
     @Autowired
-    private CachingConnectionFactory jmsConnectionFactory;
+    private ConnectionFactory jmsConnectionFactory;
 
     @Bean(name = PollerMetadata.DEFAULT_POLLER)
     public PollerMetadata poller()
@@ -50,11 +55,18 @@ public class IntegrationConfig
     }
 
     @Bean
+    public QueueChannel statuesInboundChannel()
+    {
+        return MessageChannels.queue("statusesInboundChannel")
+                .get();
+    }
+
+    @Bean
     public IntegrationFlow chronicleStatusesInbound(SingleChronicleQueue chronicleQueue)
     {
         // FIXME : Read from chronicle queue
         return IntegrationFlows.from("status")
-                .channel(MessageChannels.queue("statusesInboundChannel"))
+                .channel(statuesInboundChannel())
                 .get();
     }
 
@@ -91,7 +103,7 @@ public class IntegrationConfig
                         .configureJmsTemplate(t ->
                                 t.deliveryPersistent(true))
                         .destination("jmsInbound"))
-                .channel(MessageChannels.queue("statusesInboundChannel"))
+                .channel(statuesInboundChannel())
                 .get();
     }
 
