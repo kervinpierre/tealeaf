@@ -2,10 +2,8 @@ package com.github.phuonghuynh.main;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.phuonghuynh.model.Status;
 import net.openhft.chronicle.queue.ChronicleQueueBuilder;
 import net.openhft.chronicle.queue.ExcerptAppender;
-import net.openhft.chronicle.queue.ExcerptTailer;
 import net.openhft.chronicle.queue.impl.single.SingleChronicleQueue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,7 +20,6 @@ import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.jms.connection.CachingConnectionFactory;
 
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 /**
  * Created by phuonghqh on 7/16/16.
@@ -85,6 +82,7 @@ public class IntegrationConfig
     @Bean
     public IntegrationFlow jmsStatusesInbound()
     {
+        // FIXME : Should this be a Gateway instead?
         return IntegrationFlows
                 .from(Jms.inboundAdapter(this.jmsConnectionFactory)
                         .configureJmsTemplate(t ->
