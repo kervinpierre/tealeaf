@@ -36,13 +36,19 @@ public class IndexController
     @Value("${pdemo.use-jms:false}")
     private Boolean useJMS;
 
+    /**
+     * If true, an embedded JMS broker is started
+     */
+    @Value("${pdemo.jms-broker:false}")
+    private Boolean jmsBroker;
+
     @RequestMapping("/")
     public String index(HttpServletRequest request) throws Exception
     {
-        if( BooleanUtils.isTrue(useJMS))
+        if( BooleanUtils.isTrue(useJMS) && BooleanUtils.isTrue(jmsBroker) )
         {
-            // FIXME: Should be started conditionally
             // FIXME: Should be started in a background thread
+            // FIXME: Only a single instance should be the broker
             JMSServerUtil.startServer();
         }
 
@@ -50,6 +56,7 @@ public class IndexController
         {
             try
             {
+                // Sleep for a random amount of time
                 Thread.sleep(RandomUtils.nextLong(0, 5000));
             }
             catch( InterruptedException ex )
@@ -57,6 +64,7 @@ public class IndexController
                 LOGGER.debug("Sleep interrupted", ex);
             }
 
+            // Send a Status Message
             Status stat = statusService.createStatus();
             statusGateway.sendStatus(stat);
         }
