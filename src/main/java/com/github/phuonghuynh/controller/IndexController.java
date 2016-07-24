@@ -49,7 +49,8 @@ public class IndexController
         {
             // FIXME: Should be started in a background thread
             // FIXME: Only a single instance should be the broker
-            JMSServerUtil.startServer();
+
+            //JMSServerUtil.startServer();
         }
 
         for( int i=0; i<10; i++ )
