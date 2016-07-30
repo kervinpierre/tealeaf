@@ -41,12 +41,12 @@ public class Status
   @GeneratedValue(generator = "uuid2")
   @GenericGenerator(name = "uuid2", strategy = "uuid2")
   @Column(name = "id", unique = true, columnDefinition = "BINARY(16)")
-  private UUID getId()
+  public UUID getId()
   {
     return id;
   }
 
-  private void setId(UUID id)
+  public void setId(UUID id)
   {
     this.id = id;
   }
@@ -56,12 +56,12 @@ public class Status
    * @return
      */
   @Column(name = "source_id", columnDefinition = "BINARY(16)")
-  private UUID getSourceId()
+  public UUID getSourceId()
   {
     return sourceId;
   }
 
-  private void setSourceId(UUID sourceId)
+  public void setSourceId(UUID sourceId)
   {
     this.sourceId = sourceId;
   }
@@ -72,12 +72,12 @@ public class Status
    * @return
      */
   @Column(name = "dst_id", columnDefinition = "BINARY(16)")
-  private UUID getDstId()
+  public UUID getDstId()
   {
     return dstId;
   }
 
-  private void setDstId(UUID dstId)
+  public void setDstId(UUID dstId)
   {
     this.dstId = dstId;
   }
@@ -88,23 +88,23 @@ public class Status
      */
   @Column(name = "is_valid")
   @Type(type = "numeric_boolean")
-  private boolean isValid()
+  public boolean isValid()
   {
     return valid;
   }
 
-  private void setValid(boolean valid)
+  public void setValid(boolean valid)
   {
     this.valid = valid;
   }
 
   @Column(name = "desc")
-  private String getDesc()
+  public String getDesc()
   {
     return desc;
   }
 
-  private void setDesc(String desc)
+  public void setDesc(String desc)
   {
     this.desc = desc;
   }
@@ -115,12 +115,12 @@ public class Status
      */
   @Column(name = "create_time")
   @Type(type="org.jadira.usertype.dateandtime.joda.PersistentDateTime")
-  private DateTime getTimeStamp()
+  public DateTime getTimeStamp()
   {
     return timeStamp;
   }
 
-  private void setTimeStamp(DateTime timeStamp)
+  public void setTimeStamp(DateTime timeStamp)
   {
     this.timeStamp = timeStamp;
   }
@@ -131,12 +131,12 @@ public class Status
    * @return
      */
   @Column(name = "status_type")
-  private int getStatusType()
+  public int getStatusType()
   {
     return statusType;
   }
 
-  private void setStatusType(int statusType)
+  public void setStatusType(int statusType)
   {
     this.statusType = statusType;
   }
@@ -146,12 +146,12 @@ public class Status
    * @return
      */
   @Column(name = "payload_type")
-  private int getPayloadType()
+  public int getPayloadType()
   {
     return payloadType;
   }
 
-  private void setPayloadType(int payloadType)
+  public void setPayloadType(int payloadType)
   {
     this.payloadType = payloadType;
   }
@@ -161,12 +161,12 @@ public class Status
    * @return
      */
   @Column(name = "payload")
-  private byte[] getPayload()
+  public byte[] getPayload()
   {
     return payload;
   }
 
-  private void setPayload(byte[] payload)
+  public void setPayload(byte[] payload)
   {
     this.payload = payload;
   }

@@ -3,8 +3,8 @@ package com.github.phuonghuynh.main;
 import com.github.phuonghuynh.model.Status;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.apache.activemq.artemis.jms.client.ActiveMQQueue;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -19,6 +19,7 @@ import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
 
 import javax.jms.ConnectionFactory;
+import javax.jms.Queue;
 
 /**
  * Created by kervin on 2016-07-22.
@@ -86,4 +87,14 @@ public class JMSConfig implements JmsListenerConfigurer
         //registrar.setContainerFactory(mainJMSFactory());
         LOGGER.debug("configureJmsListeners()");
     }
+	
+  @Bean
+  public Queue toIntQueue() {
+    return new ActiveMQQueue("in.queue");
+  }
+
+  @Bean
+  public Queue toJmsQueue() {
+    return new ActiveMQQueue("out.queue");
+  }
 }

@@ -67,7 +67,7 @@ public class IndexController
 
             // Send a Status Message
             Status stat = statusService.createStatus();
-            statusGateway.sendStatus(stat);
+            statusGateway.send(stat);
         }
 
         return "index";
