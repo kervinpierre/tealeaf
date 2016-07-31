@@ -6,6 +6,8 @@ import com.github.phuonghuynh.main.DemoApplication;
 import com.github.phuonghuynh.model.Status;
 import com.github.phuonghuynh.service.StatusGateway;
 import com.github.phuonghuynh.service.StatusService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,6 +31,9 @@ import java.nio.file.Paths;
 @WebAppConfiguration
 public class DemoApplicationTest
 {
+    private static final Logger LOGGER
+            = LogManager.getLogger(DemoApplicationTest.class);
+
     @Resource
     private JmsProducer producer;
 
@@ -54,9 +59,14 @@ public class DemoApplicationTest
     public void A001_testStatusGateway()
             throws InterruptedException, IOException
     {
-        Path testDir = Files.createTempDirectory("A001_testStatusGateway");
+        String testName = "A001_testStatusGateway";
+        LOGGER.debug(String.format("Starting '%s'", testName));
+
+        Path testDir = Files.createTempDirectory(testName);
 
         Path chronicleDir = Files.createDirectory(testDir.resolve("chronicleDir"));
+
+        LOGGER.debug(String.format("ChronicleDir is '%s'", chronicleDir));
         demoConfig.setChroniclePath(chronicleDir.toString());
 
         Status statusMessage = statusService.createStatus();

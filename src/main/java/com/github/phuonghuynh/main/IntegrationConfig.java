@@ -60,9 +60,11 @@ public class IntegrationConfig
     @Bean
     public QueueChannel chronicleChannel()
     {
+        String currPath = demoConfig.getChroniclePath();
+
         return new QueueChannel(new PersistentQueueSpec<Message<?>>()
                 .codec(new JavaSerializationCodec<>())
-                .basePath(demoConfig.getChroniclePath())
+                .basePath(currPath)
                 .get());
     }
 
