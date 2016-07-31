@@ -3,6 +3,7 @@ package com.github.phuonghuynh.main;
 import com.github.phuonghuynh.config.DemoConfig;
 import com.github.phuonghuynh.model.Status;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,8 @@ import reactor.io.queue.spec.PersistentQueueSpec;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Queue;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Map;
 
 /**
@@ -59,8 +62,14 @@ public class IntegrationConfig
 
     @Bean
     public QueueChannel chronicleChannel()
+            throws IOException
     {
         String currPath = demoConfig.getChroniclePath();
+
+        if( StringUtils.isBlank(currPath) )
+        {
+            currPath = Files.createTempDirectory("demoApp").toString();
+        }
 
         return new QueueChannel(new PersistentQueueSpec<Message<?>>()
                 .codec(new JavaSerializationCodec<>())
