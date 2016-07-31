@@ -6,7 +6,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.IntegrationComponentScan;
@@ -14,18 +13,12 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
-import org.springframework.integration.dsl.RouterSpec;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.core.Pollers;
 import org.springframework.integration.dsl.jms.Jms;
-import org.springframework.integration.dsl.support.Consumer;
 import org.springframework.integration.dsl.support.GenericHandler;
-import org.springframework.integration.router.ExpressionEvaluatingRouter;
-import org.springframework.integration.router.HeaderValueRouter;
-import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import reactor.io.codec.JavaSerializationCodec;
 import reactor.io.queue.spec.PersistentQueueSpec;
 
@@ -69,7 +62,7 @@ public class IntegrationConfig
     {
         return new QueueChannel(new PersistentQueueSpec<Message<?>>()
                 .codec(new JavaSerializationCodec<>())
-                .basePath("chronicleChannel")
+                .basePath(demoConfig.getChroniclePath())
                 .get());
     }
 

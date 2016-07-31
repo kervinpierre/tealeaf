@@ -7,7 +7,9 @@ import com.github.phuonghuynh.model.Status;
 import com.github.phuonghuynh.service.StatusGateway;
 import com.github.phuonghuynh.service.StatusService;
 import org.junit.FixMethodOrder;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestWatcher;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import javax.annotation.Resource;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -35,6 +41,9 @@ public class DemoApplicationTest
     @Autowired
     private StatusGateway statusGateway;
 
+    @Rule
+    public TestWatcher m_testWatcher = new DemoTestWatcher();
+
 //  @Test
 //  public void testSendAndReceive() throws InterruptedException, RemoteException {
 //    producer.convertAndSendMessage("in.queue", status);
@@ -43,8 +52,13 @@ public class DemoApplicationTest
 
     @Test
     public void A001_testStatusGateway()
-            throws InterruptedException
+            throws InterruptedException, IOException
     {
+        Path testDir = Files.createTempDirectory("A001_testStatusGateway");
+
+        Path chronicleDir = Files.createDirectory(testDir.resolve("chronicleDir"));
+        demoConfig.setChroniclePath(chronicleDir.toString());
+
         Status statusMessage = statusService.createStatus();
 
         demoConfig.setUseJms(false);

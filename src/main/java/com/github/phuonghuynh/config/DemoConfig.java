@@ -8,15 +8,39 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @ConfigurationProperties(prefix = "pdemo")
-public class DemoConfig {
-  private Boolean useJms;
-  private Boolean jmsBroker;
+public class DemoConfig
+{
+    private Boolean useJms;
+    private Boolean jmsBroker;
+    private String chroniclePath;
 
-  public Boolean getUseJms() {
-    return useJms;
-  }
+    public Boolean getJmsBroker()
+    {
+        return jmsBroker;
+    }
 
-  public void setUseJms(Boolean useJms) {
-    this.useJms = useJms;
-  }
+    public void setJmsBroker( Boolean jmsBroker )
+    {
+        this.jmsBroker = jmsBroker;
+    }
+
+    public String getChroniclePath()
+    {
+        return chroniclePath;
+    }
+
+    public void setChroniclePath( String chroniclePath )
+    {
+        this.chroniclePath = chroniclePath;
+    }
+
+    public Boolean getUseJms()
+    {
+        return useJms;
+    }
+
+    public void setUseJms( Boolean useJms )
+    {
+        this.useJms = useJms;
+    }
 }
