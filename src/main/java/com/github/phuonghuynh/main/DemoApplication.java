@@ -7,19 +7,16 @@ import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-@SpringBootApplication(scanBasePackages="com.github.phuonghuynh")
+@SpringBootApplication(scanBasePackages = "com.github.phuonghuynh")
 @EnableJpaRepositories("com.github.phuonghuynh.repository")
 @EntityScan(basePackages = "com.github.phuonghuynh.model")
-public class DemoApplication extends SpringBootServletInitializer
-{
+public class DemoApplication extends SpringBootServletInitializer {
   @Override
-  protected SpringApplicationBuilder configure(SpringApplicationBuilder application)
-  {
+  protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
     return application.sources(DemoApplication.class);
   }
 
-  public static void main(String[] args)
-  {
+  public static void main(String[] args) {
     SpringApplication.run(DemoApplication.class, args);
   }
 }
