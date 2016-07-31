@@ -8,10 +8,9 @@ import org.springframework.messaging.handler.annotation.Payload;
 /**
  * Created by phuonghqh on 7/16/16.
  */
-@Service
 @MessagingGateway
-public interface StatusGateway {
-
+public interface StatusGateway
+{
   @Gateway(requestChannel = "inChannel")
   void send(@Payload Status status);
 }

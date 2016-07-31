@@ -1,5 +1,6 @@
 package com.github.phuonghuynh;
 
+import com.github.phuonghuynh.config.DemoConfig;
 import com.github.phuonghuynh.jms.JmsProducer;
 import com.github.phuonghuynh.main.DemoApplication;
 import com.github.phuonghuynh.model.Status;
@@ -22,14 +23,17 @@ import javax.annotation.Resource;
 @WebAppConfiguration
 public class DemoApplicationTest
 {
-  @Resource
-  private JmsProducer producer;
-  
-  @Autowired
-  StatusService statusService;
+    @Resource
+    private JmsProducer producer;
 
-  @Resource
-  private StatusGateway statusGateway;
+    @Autowired
+    StatusService statusService;
+
+    @Autowired
+    DemoConfig demoConfig;
+
+    @Autowired
+    private StatusGateway statusGateway;
 
 //  @Test
 //  public void testSendAndReceive() throws InterruptedException, RemoteException {
@@ -37,36 +41,42 @@ public class DemoApplicationTest
 //    Thread.sleep(200000);
 //  }
 
-  @Test
-  public void testStatusGateway() throws InterruptedException
-  {
-    Status statusMessage = statusService.createStatus();
+    @Test
+    public void A001_testStatusGateway()
+            throws InterruptedException
+    {
+        Status statusMessage = statusService.createStatus();
 
-    statusMessage.setDesc("test");
-    statusGateway.send(statusMessage);
+        demoConfig.setUseJms(false);
+        statusMessage.setDesc("test");
+        statusGateway.send(statusMessage);
 
-    statusMessage = statusService.createStatus();
-    statusMessage.setDesc("test 2");
+        demoConfig.setUseJms(true);
+        statusMessage = statusService.createStatus();
+        statusMessage.setDesc("test 2");
 
-    statusGateway.send(statusMessage);
+        statusGateway.send(statusMessage);
 
-    Thread.sleep(200000);
-  }
-  
-  @Test
-  public void testMe() throws InterruptedException {
-    for (int i = 1; i <= 400; i++) {
+        Thread.sleep(200000);
+    }
+
+    @Test
+    public void A002_testMe()
+            throws InterruptedException
+    {
+        for( int i = 1; i <= 400; i++ )
+        {
 //      Order order = new Order(i);
 //      order.addItem(DrinkType.LATTE, 2, false);
 //      order.addItem(DrinkType.MOCHA, 3, true);
 //      cafe.placeOrder(order);
 
-      Status stat = statusService.createStatus();
-      statusGateway.send(stat);
-    }
+            Status stat = statusService.createStatus();
+            statusGateway.send(stat);
+        }
 
-    Thread.currentThread().sleep(1_000_000);
-    System.out.println("DONE");
-  }
+        Thread.currentThread().sleep(1_000_000);
+        System.out.println("DONE");
+    }
 
 }
