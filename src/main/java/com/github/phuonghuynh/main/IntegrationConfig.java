@@ -9,14 +9,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
+import org.springframework.integration.dsl.RouterSpec;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.core.Pollers;
 import org.springframework.integration.dsl.jms.Jms;
+import org.springframework.integration.dsl.support.Consumer;
 import org.springframework.integration.dsl.support.GenericHandler;
+import org.springframework.integration.router.ExpressionEvaluatingRouter;
+import org.springframework.integration.router.HeaderValueRouter;
+import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -32,6 +38,7 @@ import java.util.Map;
  */
 @Configuration
 @EnableIntegration
+@IntegrationComponentScan(basePackages = "com.github.phuonghuynh.service")
 public class IntegrationConfig
 {
     private static final Logger LOGGER = LogManager.getLogger(IntegrationConfig.class);
@@ -67,13 +74,15 @@ public class IntegrationConfig
     }
 
     @Bean
-    public IntegrationFlow statusOutFlow( QueueChannel outChannel )
+    public IntegrationFlow statusOutFlow( QueueChannel outChannel, DemoConfig demoConfig )
     {
         boolean currUseJMS = BooleanUtils.isTrue(demoConfig.getUseJms());
 
         return IntegrationFlows
                 .from(outChannel)
-                .<Status, Boolean>route(b -> currUseJMS, spec ->
+                .<Status, Boolean>route(b -> {
+                    return demoConfig.getUseJms();
+                }, spec ->
                 {
                     spec
                             .channelMapping(Boolean.TRUE.toString(), "jmsChannel")

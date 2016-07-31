@@ -9,6 +9,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.io.Serializable;
 import java.util.UUID;
 
 /**
@@ -20,7 +21,7 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "status")
-public class Status
+public class Status implements Serializable
 {
   private boolean valid;
   private UUID id;

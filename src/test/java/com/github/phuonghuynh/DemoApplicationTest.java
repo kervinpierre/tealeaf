@@ -51,6 +51,8 @@ public class DemoApplicationTest
         statusMessage.setDesc("test");
         statusGateway.send(statusMessage);
 
+        Thread.sleep(5000);
+
         demoConfig.setUseJms(true);
         statusMessage = statusService.createStatus();
         statusMessage.setDesc("test 2");
@@ -64,6 +66,7 @@ public class DemoApplicationTest
     public void A002_testMe()
             throws InterruptedException
     {
+        demoConfig.setUseJms(false);
         for( int i = 1; i <= 400; i++ )
         {
 //      Order order = new Order(i);
