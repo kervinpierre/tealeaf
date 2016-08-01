@@ -1,8 +1,8 @@
 package com.github.phuonghuynh.main;
 
 import com.github.phuonghuynh.model.Status;
-import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
-import org.apache.activemq.artemis.jms.client.ActiveMQQueue;
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.command.ActiveMQQueue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +48,9 @@ public class JMSConfig implements JmsListenerConfigurer
     @Bean(name = "jmsConnectionFactory")
     public ConnectionFactory connectionFactory()
     {
-        ActiveMQConnectionFactory myConnectionFactory = new ActiveMQConnectionFactory();
+        ActiveMQConnectionFactory myConnectionFactory = new ActiveMQConnectionFactory("tcp://localhost:61616");
+//        ActiveMQConnectionFactory myConnectionFactory = new ActiveMQConnectionFactory("vm://localhost");
+        myConnectionFactory.setTrustAllPackages(true);
         //myConnectionFactory.setBrokerURL("");
 
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory(myConnectionFactory);

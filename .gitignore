@@ -3,3 +3,4 @@ target/
 *.iml
 chronicleChannel/
 /demo-test.log
+activemq-data/

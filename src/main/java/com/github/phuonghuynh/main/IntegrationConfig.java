@@ -37,103 +37,89 @@ import java.util.Map;
 @Configuration
 @EnableIntegration
 @IntegrationComponentScan(basePackages = "com.github.phuonghuynh.service")
-public class IntegrationConfig
-{
-    private static final Logger LOGGER = LogManager.getLogger(IntegrationConfig.class);
+public class IntegrationConfig {
+  private static final Logger LOGGER = LogManager.getLogger(IntegrationConfig.class);
 
-    @Autowired
-    DemoConfig demoConfig;
+  @Autowired
+  DemoConfig demoConfig;
 
-    @Bean
-    public PersistentQueue<Message<?>> chronicleQueue() throws IOException {
-        String testName = "A001_testStatusGateway";
-        Path testDir = Files.createTempDirectory(testName);
+  @Bean
+  public PersistentQueue<Message<?>> chronicleQueue() throws IOException {
+    String testName = "A001_testStatusGateway";
+    Path testDir = Files.createTempDirectory(testName);
 //        Path chronicleDir = Files.createDirectory(testDir.resolve("chronicleDir"));
-        return new PersistentQueueSpec<Message<?>>()
-          .codec(new JavaSerializationCodec<>())
-          .basePath(testDir.toString() + "/chronicleDir")
-          .get();
-    }
+    return new PersistentQueueSpec<Message<?>>()
+      .codec(new JavaSerializationCodec<>())
+      .basePath(testDir.toString() + "/chronicleDir")
+      .get();
+  }
 
-    @Bean
-    public QueueChannel inChannel(PersistentQueue<Message<?>> chronicleQueue)
-    {
-        return  new QueueChannel(chronicleQueue);
-    }
+  @Bean
+  public QueueChannel inChannel(PersistentQueue<Message<?>> chronicleQueue) {
+    return MessageChannels.queue().get();
+  }
 
-    @Bean
-    public QueueChannel outChannel(PersistentQueue<Message<?>> chronicleQueue)
-    {
-        return  new QueueChannel(chronicleQueue);
-    }
+  @Bean
+  public QueueChannel outChannel(PersistentQueue<Message<?>> chronicleQueue) {
+    return MessageChannels.queue().get();
+  }
 
-    @Bean
-    public QueueChannel jmsChannel(PersistentQueue<Message<?>> chronicleQueue)
-    {
-        return  new QueueChannel(chronicleQueue);
-    }
+  @Bean
+  public QueueChannel jmsChannel(PersistentQueue<Message<?>> chronicleQueue) {
+    return MessageChannels.queue().get();
+//    return new QueueChannel(chronicleQueue);
+  }
 
-    @Bean
-    public QueueChannel chronicleChannel(PersistentQueue<Message<?>> chronicleQueue)
-    {
-        return  new QueueChannel(chronicleQueue);
+  @Bean
+  public QueueChannel chronicleChannel(PersistentQueue<Message<?>> chronicleQueue) {
+    return new QueueChannel(chronicleQueue);
 //        return new QueueChannel(new PersistentQueueSpec<Message<?>>()
 //                .codec(new JavaSerializationCodec<>())
 //                .basePath("chronicleChannel")
 //                .get());
-    }
+  }
 
-    @Bean
-    public IntegrationFlow statusOutFlow( QueueChannel outChannel, DemoConfig demoConfig )
-    {
-        boolean currUseJMS = BooleanUtils.isTrue(demoConfig.getUseJms());
+  @Bean
+  public IntegrationFlow statusOutFlow(QueueChannel outChannel, DemoConfig demoConfig) {
+    return IntegrationFlows
+      .from(outChannel)
+      .<Status, Boolean>route(b -> {
+        return demoConfig.getUseJms();
+      }, spec ->
+      {
+        spec
+          .channelMapping(Boolean.TRUE.toString(), "jmsChannel")
+          .channelMapping(Boolean.FALSE.toString(), "chronicleChannel");
+      })
+      .get();
+  }
 
-        return IntegrationFlows
-                .from(outChannel)
-                .<Status, Boolean>route(b -> {
-                    return demoConfig.getUseJms();
-                }, spec ->
-                {
-                    spec
-                            .channelMapping(Boolean.TRUE.toString(), "jmsChannel")
-                            .channelMapping(Boolean.FALSE.toString(), "chronicleChannel");
-                })
-                .get();
-    }
+  @Bean
+  public IntegrationFlow statusOutJmsFlow(ConnectionFactory jmsConnectionFactory, QueueChannel jmsChannel, Queue toJmsQueue) {
+    return IntegrationFlows
+      .from(jmsChannel)
+      .handle(Jms.outboundAdapter(jmsConnectionFactory).extractPayload(true).destination(toJmsQueue))
+      .get();
+  }
 
-    @Bean
-    public IntegrationFlow statusJmsFlow( ConnectionFactory jmsConnectionFactory, QueueChannel jmsChannel, Queue toJmsQueue )
-    {
-        return IntegrationFlows
-                .from(jmsChannel)
-                .handle(Jms.outboundAdapter(jmsConnectionFactory).extractPayload(true).destination(toJmsQueue))
-                .get();
-    }
+  @Bean
+  public IntegrationFlow statusOutChronicleFlow(QueueChannel chronicleChannel) {
+    return IntegrationFlows
+      .from(chronicleChannel)
+      .handle((payload, headers) -> {
+        System.out.println("statusChronicleFlow");
+        return null;
+      })
+      .get();
+  }
 
-    @Bean
-    public IntegrationFlow statusChronicleFlow( QueueChannel chronicleChannel )
-    {
-        return IntegrationFlows
-                .from(chronicleChannel)
-                .handle(new GenericHandler<Object>()
-                {
-                    @Override
-                    public Object handle( Object payload, Map<String, Object> headers )
-                    {
-                        System.out.println("statusChronicleFlow");
-                        return null;
-                    }
-                })
-                .get();
-    }
-
-//  @Bean
-//  public IntegrationFlow jmsInboundFlow(ConnectionFactory jmsConnectionFactory, Queue toIntQueue, QueueChannel inChannel) {
-//    return IntegrationFlows
-//      .from(Jms.inboundAdapter(jmsConnectionFactory).destination(toIntQueue))
-//      .channel(inChannel)
-//      .get();
-//  }
+  @Bean
+  public IntegrationFlow statusInJmsFlow(ConnectionFactory jmsConnectionFactory, Queue toIntQueue, QueueChannel inChannel) {
+    return IntegrationFlows
+      .from(Jms.inboundAdapter(jmsConnectionFactory).destination(toIntQueue))
+      .channel(inChannel)
+      .get();
+  }
 
 //  @Bean
 //  public IntegrationFlow jmsOutboundFlow(ConnectionFactory jmsConnectionFactory, Queue toJmsQueue, QueueChannel outChannel) {
@@ -143,9 +129,8 @@ public class IntegrationConfig
 //      .get();
 //  }
 
-    @Bean(name = PollerMetadata.DEFAULT_POLLER)
-    public PollerMetadata poller()
-    {
-        return Pollers.fixedDelay(100).get();
-    }
+  @Bean(name = PollerMetadata.DEFAULT_POLLER)
+  public PollerMetadata poller() {
+    return Pollers.fixedDelay(100).get();
+  }
 }
