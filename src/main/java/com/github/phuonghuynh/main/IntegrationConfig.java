@@ -21,12 +21,14 @@ import org.springframework.integration.dsl.support.GenericHandler;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.Message;
 import reactor.io.codec.JavaSerializationCodec;
+import reactor.io.queue.PersistentQueue;
 import reactor.io.queue.spec.PersistentQueueSpec;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Queue;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 
 /**
@@ -43,38 +45,42 @@ public class IntegrationConfig
     DemoConfig demoConfig;
 
     @Bean
-    public QueueChannel inChannel()
-    {
-        return MessageChannels.queue().get();
+    public PersistentQueue<Message<?>> chronicleQueue() throws IOException {
+        String testName = "A001_testStatusGateway";
+        Path testDir = Files.createTempDirectory(testName);
+//        Path chronicleDir = Files.createDirectory(testDir.resolve("chronicleDir"));
+        return new PersistentQueueSpec<Message<?>>()
+          .codec(new JavaSerializationCodec<>())
+          .basePath(testDir.toString() + "/chronicleDir")
+          .get();
     }
 
     @Bean
-    public QueueChannel outChannel()
+    public QueueChannel inChannel(PersistentQueue<Message<?>> chronicleQueue)
     {
-        return MessageChannels.queue().get();
+        return  new QueueChannel(chronicleQueue);
     }
 
     @Bean
-    public QueueChannel jmsChannel()
+    public QueueChannel outChannel(PersistentQueue<Message<?>> chronicleQueue)
     {
-        return MessageChannels.queue().get();
+        return  new QueueChannel(chronicleQueue);
     }
 
     @Bean
-    public QueueChannel chronicleChannel()
-            throws IOException
+    public QueueChannel jmsChannel(PersistentQueue<Message<?>> chronicleQueue)
     {
-        String currPath = demoConfig.getChroniclePath();
+        return  new QueueChannel(chronicleQueue);
+    }
 
-        if( StringUtils.isBlank(currPath) )
-        {
-            currPath = Files.createTempDirectory("demoApp").toString();
-        }
-
-        return new QueueChannel(new PersistentQueueSpec<Message<?>>()
-                .codec(new JavaSerializationCodec<>())
-                .basePath(currPath)
-                .get());
+    @Bean
+    public QueueChannel chronicleChannel(PersistentQueue<Message<?>> chronicleQueue)
+    {
+        return  new QueueChannel(chronicleQueue);
+//        return new QueueChannel(new PersistentQueueSpec<Message<?>>()
+//                .codec(new JavaSerializationCodec<>())
+//                .basePath("chronicleChannel")
+//                .get());
     }
 
     @Bean
