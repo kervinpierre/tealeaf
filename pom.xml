@@ -97,13 +97,19 @@
     <dependency>
       <groupId>net.openhft</groupId>
       <artifactId>chronicle</artifactId>
-      <version>3.3.6</version>
+      <version>3.2.5</version>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/org.projectreactor/reactor-core -->
     <dependency>
-      <groupId>io.projectreactor</groupId>
+      <groupId>org.projectreactor</groupId>
       <artifactId>reactor-core</artifactId>
-      <version>2.0.8.RELEASE</version>
+      <version>1.1.6.RELEASE</version>
     </dependency>
+    <!--<dependency>-->
+      <!--<groupId>io.projectreactor</groupId>-->
+      <!--<artifactId>reactor-core</artifactId>-->
+      <!--<version>2.0.8.RELEASE</version>-->
+    <!--</dependency>-->
     
     <dependency>
       <groupId>org.springframework.boot</groupId>

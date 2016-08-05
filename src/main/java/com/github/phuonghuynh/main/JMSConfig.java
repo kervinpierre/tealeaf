@@ -89,14 +89,9 @@ public class JMSConfig implements JmsListenerConfigurer
         //registrar.setContainerFactory(mainJMSFactory());
         LOGGER.debug("configureJmsListeners()");
     }
-	
-  @Bean
-  public Queue toIntQueue() {
-    return new ActiveMQQueue("in.queue");
-  }
 
   @Bean
-  public Queue toJmsQueue() {
-    return new ActiveMQQueue("out.queue");
+  public Queue jmsQueue() {
+    return new ActiveMQQueue("jms.queue");
   }
 }

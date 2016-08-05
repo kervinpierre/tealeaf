@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Profile("JmsConsumer")
-@Component
+//@Component
 public class JmsConsumer {
 
   @JmsListener(destination = "out.queue")

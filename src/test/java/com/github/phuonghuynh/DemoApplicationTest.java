@@ -9,6 +9,7 @@ import com.github.phuonghuynh.service.StatusService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestWatcher;
@@ -16,6 +17,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.messaging.Message;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
@@ -29,81 +33,95 @@ import java.nio.file.Paths;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = DemoApplication.class)
 @WebAppConfiguration
-public class DemoApplicationTest
-{
-    private static final Logger LOGGER
-            = LogManager.getLogger(DemoApplicationTest.class);
+public class DemoApplicationTest {
+  private static final Logger LOGGER
+    = LogManager.getLogger(DemoApplicationTest.class);
 
-    @Resource
-    private JmsProducer producer;
+  @Resource
+  private JmsProducer producer;
 
-    @Autowired
-    StatusService statusService;
+  @Autowired
+  StatusService statusService;
 
-    @Autowired
-    DemoConfig demoConfig;
+  @Autowired
+  DemoConfig demoConfig;
 
-    @Autowired
-    private StatusGateway statusGateway;
+  @Autowired
+  private StatusGateway statusGateway;
 
-    @Rule
-    public TestWatcher m_testWatcher = new DemoTestWatcher();
+  @Rule
+  public TestWatcher m_testWatcher = new DemoTestWatcher();
 
-//  @Test
-//  public void testSendAndReceive() throws InterruptedException, RemoteException {
-//    producer.convertAndSendMessage("in.queue", status);
-//    Thread.sleep(200000);
-//  }
+  private MessagingTemplate template = new MessagingTemplate();
 
-    @Test
-    public void A001_testStatusGateway()
-            throws InterruptedException, IOException
-    {
-        String testName = "A001_testStatusGateway";
-        LOGGER.debug(String.format("Starting '%s'", testName));
+  @Resource
+  private QueueChannel chronicleChannel;
 
-        Path testDir = Files.createTempDirectory(testName);
+  @Test
+  public void testSendChronicle() throws InterruptedException {
+    demoConfig.setUseJms(false);
+    Status statusMessage = statusService.createStatus();
+    statusGateway.send(statusMessage);
+    Thread.sleep(5000);
+  }
 
-        Path chronicleDir = Files.createDirectory(testDir.resolve("chronicleDir"));
+  @Test
+  public void testReceive() throws InterruptedException {
+//    Status statusMessage = statusService.createStatus();
+    demoConfig.setUseJms(false);
+    Message<?> abc = template.receive(chronicleChannel);
+    System.out.println(abc);
+    Thread.sleep(200000);
+  }
 
-        LOGGER.debug(String.format("ChronicleDir is '%s'", chronicleDir));
-        demoConfig.setChroniclePath(chronicleDir.toString());
+  @Test
+  @Ignore
+  public void A001_testStatusGateway()
+    throws InterruptedException, IOException {
+    String testName = "A001_testStatusGateway";
+    LOGGER.debug(String.format("Starting '%s'", testName));
 
-        Status statusMessage = statusService.createStatus();
+    Path testDir = Files.createTempDirectory(testName);
 
-        demoConfig.setUseJms(false);
-        statusMessage.setDesc("test");
-        statusGateway.send(statusMessage);
+    Path chronicleDir = Files.createDirectory(testDir.resolve("chronicleDir"));
 
-        Thread.sleep(5000);
+    LOGGER.debug(String.format("ChronicleDir is '%s'", chronicleDir));
+    demoConfig.setChroniclePath(chronicleDir.toString());
 
-        demoConfig.setUseJms(true);
-        statusMessage = statusService.createStatus();
-        statusMessage.setDesc("test 2");
+    Status statusMessage = statusService.createStatus();
 
-        statusGateway.send(statusMessage);
+    demoConfig.setUseJms(false);
+    statusMessage.setDesc("test");
+    statusGateway.send(statusMessage);
 
-        Thread.sleep(200000);
-    }
+    Thread.sleep(5000);
 
-    @Test
-    public void A002_testMe()
-            throws InterruptedException
-    {
-        demoConfig.setUseJms(false);
-        for( int i = 1; i <= 400; i++ )
-        {
+    demoConfig.setUseJms(true);
+    statusMessage = statusService.createStatus();
+    statusMessage.setDesc("test 2");
+
+    statusGateway.send(statusMessage);
+
+    Thread.sleep(200000);
+  }
+
+  @Test
+  @Ignore
+  public void A002_testMe()
+    throws InterruptedException {
+    demoConfig.setUseJms(false);
+    for (int i = 1; i <= 400; i++) {
 //      Order order = new Order(i);
 //      order.addItem(DrinkType.LATTE, 2, false);
 //      order.addItem(DrinkType.MOCHA, 3, true);
 //      cafe.placeOrder(order);
 
-            Status stat = statusService.createStatus();
-            statusGateway.send(stat);
-        }
-
-        Thread.currentThread().sleep(1_000_000);
-        System.out.println("DONE");
+      Status stat = statusService.createStatus();
+      statusGateway.send(stat);
     }
+
+    Thread.currentThread().sleep(1_000_000);
+    System.out.println("DONE");
+  }
 
 }

@@ -2,13 +2,13 @@ package com.github.phuonghuynh.main;
 
 import com.github.phuonghuynh.config.DemoConfig;
 import com.github.phuonghuynh.model.Status;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
@@ -17,23 +17,21 @@ import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.dsl.channel.MessageChannels;
 import org.springframework.integration.dsl.core.Pollers;
 import org.springframework.integration.dsl.jms.Jms;
-import org.springframework.integration.dsl.support.GenericHandler;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.messaging.Message;
-import reactor.io.codec.JavaSerializationCodec;
-import reactor.io.queue.PersistentQueue;
-import reactor.io.queue.spec.PersistentQueueSpec;
+import reactor.io.encoding.JavaSerializationCodec;
+import reactor.queue.PersistentQueue;
+import reactor.queue.spec.PersistentQueueSpec;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Queue;
+import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Map;
 
 /**
  * Created by phuonghqh on 7/16/16.
  */
+@Slf4j
 @Configuration
 @EnableIntegration
 @IntegrationComponentScan(basePackages = "com.github.phuonghuynh.service")
@@ -43,24 +41,30 @@ public class IntegrationConfig {
   @Autowired
   DemoConfig demoConfig;
 
-  @Bean
+  @Bean//TODO chronicle folder must be shared between process, otherwise they not see items
   public PersistentQueue<Message<?>> chronicleQueue() throws IOException {
-    String testName = "A001_testStatusGateway";
-    Path testDir = Files.createTempDirectory(testName);
+//    String testName = "A001_testStatusGateway";
+//    Path testDir = Files.createTempDirectory(testName);
 //        Path chronicleDir = Files.createDirectory(testDir.resolve("chronicleDir"));
+    new File("chronicleDir/").mkdir();
     return new PersistentQueueSpec<Message<?>>()
       .codec(new JavaSerializationCodec<>())
-      .basePath(testDir.toString() + "/chronicleDir")
+//      .codec(new JavaSerializationCodec<>())
+      .basePath("chronicleDir/")
+      .dataBlockSize(10000)
+//      .basePath(testDir.toString() + "chronicleDir")
       .get();
   }
 
   @Bean
   public QueueChannel inChannel(PersistentQueue<Message<?>> chronicleQueue) {
+//    return new QueueChannel(chronicleQueue);
     return MessageChannels.queue().get();
   }
 
   @Bean
-  public QueueChannel outChannel(PersistentQueue<Message<?>> chronicleQueue) {
+  public QueueChannel routeChannel(PersistentQueue<Message<?>> chronicleQueue) {
+//    return new QueueChannel(chronicleQueue);
     return MessageChannels.queue().get();
   }
 
@@ -71,18 +75,25 @@ public class IntegrationConfig {
   }
 
   @Bean
-  public QueueChannel chronicleChannel(PersistentQueue<Message<?>> chronicleQueue) {
-    return new QueueChannel(chronicleQueue);
-//        return new QueueChannel(new PersistentQueueSpec<Message<?>>()
-//                .codec(new JavaSerializationCodec<>())
-//                .basePath("chronicleChannel")
-//                .get());
+  public QueueChannel jmsInChannel(PersistentQueue<Message<?>> chronicleQueue) {
+    return MessageChannels.queue().get();
+//    return new QueueChannel(chronicleQueue);
   }
 
   @Bean
-  public IntegrationFlow statusOutFlow(QueueChannel outChannel, DemoConfig demoConfig) {
+  public QueueChannel chronicleChannel(PersistentQueue<Message<?>> chronicleQueue) {
+    return new QueueChannel(chronicleQueue);
+  }
+
+//  @Bean
+//  public QueueChannel chronicleInChannel(PersistentQueue<Message<?>> chronicleQueue) {
+//    return new QueueChannel(chronicleQueue);
+//  }
+
+  @Bean
+  public IntegrationFlow routeFlow(QueueChannel routeChannel, DemoConfig demoConfig) {
     return IntegrationFlows
-      .from(outChannel)
+      .from(routeChannel)
       .<Status, Boolean>route(b -> {
         return demoConfig.getUseJms();
       }, spec ->
@@ -95,37 +106,51 @@ public class IntegrationConfig {
   }
 
   @Bean
-  public IntegrationFlow statusOutJmsFlow(ConnectionFactory jmsConnectionFactory, QueueChannel jmsChannel, Queue toJmsQueue) {
+  public IntegrationFlow jmsOutIntegrationFlow(ConnectionFactory jmsConnectionFactory, QueueChannel jmsChannel, Queue jmsQueue) {
     return IntegrationFlows
       .from(jmsChannel)
-      .handle(Jms.outboundAdapter(jmsConnectionFactory).extractPayload(true).destination(toJmsQueue))
+      .handle((payload, headers) -> {
+        log.info("writing to Jms, payload: {}", payload);
+        return payload;
+      })
+      .handle(Jms.outboundAdapter(jmsConnectionFactory).extractPayload(true).destination(jmsQueue))
       .get();
   }
 
+  @Profile("JmsConsumer")
   @Bean
-  public IntegrationFlow statusOutChronicleFlow(QueueChannel chronicleChannel) {
+  public IntegrationFlow jmsInIntegrationFlow(ConnectionFactory jmsConnectionFactory, Queue jmsQueue, QueueChannel jmsInChannel) {
     return IntegrationFlows
-      .from(chronicleChannel)
+      .from(Jms.inboundAdapter(jmsConnectionFactory).destination(jmsQueue))
+      .channel(jmsInChannel)
       .handle((payload, headers) -> {
-        System.out.println("statusChronicleFlow");
-        return null;
+        log.info("reading from jms queue, payload: {}", payload);
+        return payload;
       })
       .get();
   }
 
   @Bean
-  public IntegrationFlow statusInJmsFlow(ConnectionFactory jmsConnectionFactory, Queue toIntQueue, QueueChannel inChannel) {
+  public IntegrationFlow chronicleIntegrationFlow(QueueChannel chronicleChannel) {
     return IntegrationFlows
-      .from(Jms.inboundAdapter(jmsConnectionFactory).destination(toIntQueue))
-      .channel(inChannel)
+      .from(chronicleChannel)
+      .handle((payload, headers) -> {
+        log.info("writing to chronicle queue, payload: {}", payload);
+        return payload;
+      })
+//      .channel(chronicleInChannel)
       .get();
   }
 
+//  @Profile("ChronicleConsumer")
 //  @Bean
-//  public IntegrationFlow jmsOutboundFlow(ConnectionFactory jmsConnectionFactory, Queue toJmsQueue, QueueChannel outChannel) {
+//  public IntegrationFlow chronicleOutIntegrationFlow(QueueChannel chronicleChannel) {
 //    return IntegrationFlows
-//      .from(outChannel)
-//      .handle(Jms.outboundAdapter(jmsConnectionFactory).extractPayload(true).destination(toJmsQueue))
+//      .from(chronicleChannel)
+//      .handle((payload, headers) -> {
+//        log.info("reading from chronicle queue, payload: {}", payload);
+//        return payload;
+//      })
 //      .get();
 //  }
 
