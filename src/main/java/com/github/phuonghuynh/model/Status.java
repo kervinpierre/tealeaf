@@ -23,6 +23,8 @@ import java.util.UUID;
 @Table(name = "status")
 public class Status implements Serializable
 {
+
+
   private boolean valid;
   private UUID id;
   private UUID sourceId;

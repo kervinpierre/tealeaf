@@ -43,6 +43,6 @@ class JMSServerUtilTest
     @Ignore
     public void A001_startServer() throws Exception
     {
-        JMSServerUtil.startServer();
+//        JMSServerUtil.startServer();
     }
 }

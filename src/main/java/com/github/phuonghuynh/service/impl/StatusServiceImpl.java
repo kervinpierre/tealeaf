@@ -6,6 +6,8 @@ import com.github.phuonghuynh.service.StatusService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 /**
  * Created by kervin on 2016-07-18.
  */
@@ -19,7 +21,7 @@ public class StatusServiceImpl implements StatusService
     public Status createStatus()
     {
         Status res = new Status();
-        
+        res.setId(UUID.randomUUID());
         return res;
     }
 
