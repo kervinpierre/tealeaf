@@ -43,52 +43,38 @@ public class IntegrationConfig {
 
   @Bean//TODO chronicle folder must be shared between process, otherwise they not see items
   public PersistentQueue<Message<?>> chronicleQueue() throws IOException {
-//    String testName = "A001_testStatusGateway";
-//    Path testDir = Files.createTempDirectory(testName);
-//        Path chronicleDir = Files.createDirectory(testDir.resolve("chronicleDir"));
     new File("chronicleDir/").mkdir();
     return new PersistentQueueSpec<Message<?>>()
       .codec(new JavaSerializationCodec<>())
-//      .codec(new JavaSerializationCodec<>())
       .basePath("chronicleDir/")
       .dataBlockSize(10000)
-//      .basePath(testDir.toString() + "chronicleDir")
       .get();
   }
 
   @Bean
-  public QueueChannel inChannel(PersistentQueue<Message<?>> chronicleQueue) {
-//    return new QueueChannel(chronicleQueue);
+  public QueueChannel inChannel() {
     return MessageChannels.queue().get();
   }
 
   @Bean
-  public QueueChannel routeChannel(PersistentQueue<Message<?>> chronicleQueue) {
-//    return new QueueChannel(chronicleQueue);
+  public QueueChannel routeChannel() {
     return MessageChannels.queue().get();
   }
 
   @Bean
-  public QueueChannel jmsChannel(PersistentQueue<Message<?>> chronicleQueue) {
+  public QueueChannel jmsChannel() {
     return MessageChannels.queue().get();
-//    return new QueueChannel(chronicleQueue);
   }
 
   @Bean
-  public QueueChannel jmsInChannel(PersistentQueue<Message<?>> chronicleQueue) {
+  public QueueChannel jmsInChannel() {
     return MessageChannels.queue().get();
-//    return new QueueChannel(chronicleQueue);
   }
 
   @Bean
   public QueueChannel chronicleChannel(PersistentQueue<Message<?>> chronicleQueue) {
     return new QueueChannel(chronicleQueue);
   }
-
-//  @Bean
-//  public QueueChannel chronicleInChannel(PersistentQueue<Message<?>> chronicleQueue) {
-//    return new QueueChannel(chronicleQueue);
-//  }
 
   @Bean
   public IntegrationFlow routeFlow(QueueChannel routeChannel, DemoConfig demoConfig) {
@@ -138,21 +124,8 @@ public class IntegrationConfig {
         log.info("writing to chronicle queue, payload: {}", payload);
         return payload;
       })
-//      .channel(chronicleInChannel)
       .get();
   }
-
-//  @Profile("ChronicleConsumer")
-//  @Bean
-//  public IntegrationFlow chronicleOutIntegrationFlow(QueueChannel chronicleChannel) {
-//    return IntegrationFlows
-//      .from(chronicleChannel)
-//      .handle((payload, headers) -> {
-//        log.info("reading from chronicle queue, payload: {}", payload);
-//        return payload;
-//      })
-//      .get();
-//  }
 
   @Bean(name = PollerMetadata.DEFAULT_POLLER)
   public PollerMetadata poller() {
